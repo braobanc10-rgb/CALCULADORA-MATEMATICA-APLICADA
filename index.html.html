@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadoras UPEC - Matemática Aplicada</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --verde: #005B33;
+            --dorado: #FFC229;
+            --oscuro: #00331f;
+            --claro: #e8f5e8;
+            --suave: #f8fff8;
+            --gradiente: linear-gradient(135deg, #005B33, #008040);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(145deg, #d4edda, #f0f8f0);
+            color: var(--oscuro);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* MENÚ PRINCIPAL */
+        #menu-principal {
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.8s ease;
+        }
+        #menu-principal.hidden {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            top: -9999px;
+        }
+
+        header {
+            background: var(--gradiente);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,91,51,0.5);
+            position: relative;
+        }
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .escudo {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 10px solid var(--dorado);
+            box-shadow: 0 0 60px rgba(255,194,41,0.9);
+            transition: 1s;
+            cursor: pointer;
+        }
+        .escudo:hover { 
+            transform: rotate(360deg) scale(1.1);
+            box-shadow: 0 0 80px rgba(255,194,41,1);
+        }
+        .titulo-institucion {
+            text-align: center;
+        }
+        .titulo-institucion h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+        .carrera-info {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--dorado);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            margin-top: 15px;
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            display: inline-block;
+            border: 2px solid rgba(255,194,41,0.3);
+        }
+
+        .main-title {
+            font-size: 4.5em;
+            text-align: center;
+            margin: 60px 0 70px;
+            background: linear-gradient(90deg, var(--verde), var(--dorado), var(--verde));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            animation: glow 3s infinite alternate;
+        }
+        @keyframes glow { from { filter: drop-shadow(0 0 15px #FFC229); } to { filter: drop-shadow(0 0 40px #FFC229); } }
+
+        /* BARRA DE BÚSQUEDA */
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 50px;
+            position: relative;
+        }
+        .search-box {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.4em;
+            border-radius: 50px;
+            border: 4px solid var(--dorado);
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,91,51,0.2);
+            transition: all 0.4s;
+        }
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 15px 40px rgba(255,194,41,0.5);
+            transform: scale(1.02);
+        }
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--verde);
+            font-size: 1.6em;
+        }
+
+        /* CATEGORÍAS PLEGABLES MEJORADAS */
+        .categoria {
+            background: white;
+            margin: 40px auto;
+            max-width: 1200px;
+            border-radius: 30px;
+            box-shadow: 0 25px 80px rgba(0,91,51,0.3);
+            overflow: hidden;
+            border: 6px solid transparent;
+            transition: all 0.5s;
+        }
+        .categoria:hover { border-color: var(--dorado); }
+
+        .categoria-header {
+            background: var(--gradiente);
+            color: white;
+            padding: 30px 50px;
+            font-size: 2.8em;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .categoria-header i {
+            font-size: 1.8em;
+            margin-right: 20px;
+        }
+        .categoria-header::after {
+            content: '↓';
+            font-size: 2.5em;
+            transition: transform 0.6s ease;
+        }
+        .categoria.active .categoria-header::after {
+            transform: rotate(180deg);
+        }
+
+        .categoria-contenido {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.8s ease, padding 0.8s ease;
+            padding: 0 50px;
+        }
+        .categoria.active .categoria-contenido {
+            max-height: 1000px;
+            padding: 60px 50px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 50px;
+        }
+        .calc-card {
+            background: white;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 30px 90px rgba(0,91,51,0.35);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 6px solid transparent;
+            position: relative;
+        }
+        .calc-card:hover {
+            transform: translateY(-25px) scale(1.07);
+            box-shadow: 0 70px 160px rgba(0,91,51,0.55);
+            border-color: var(--dorado);
+        }
+        .card-content {
+            padding: 70px 40px;
+            text-align: center;
+        }
+        .card-icon {
+            font-size: 7em;
+            margin-bottom: 30px;
+            background: var(--gradiente);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .calc-card h3 {
+            font-size: 2.5em;
+            color: var(--verde);
+            margin: 25px 0;
+            font-weight: 900;
+        }
+        .calc-card p {
+            font-size: 1.5em;
+            color: #444;
+        }
+        .card-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--dorado);
+            color: var(--verde);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* SECCIÓN DE CRÉDITOS */
+        .creditos {
+            text-align: center;
+            margin: 60px auto;
+            padding: 30px;
+            max-width: 800px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,91,51,0.2);
+        }
+        .creditos h3 {
+            font-size: 2.2em;
+            color: var(--verde);
+            margin-bottom: 20px;
+        }
+        .autor-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .foto-autor {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid var(--dorado);
+            transition: 0.5s;
+            cursor: pointer;
+        }
+        .foto-autor:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255,194,41,0.7);
+        }
+        .nombre-autor {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--verde);
+        }
+
+        /* PANTALLA DE CALCULADORA */
+        #calculadora-pantalla {
+            display: none;
+            min-height: 100vh;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f0f8f0, #d4edda);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+        #calculadora-pantalla.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .btn-volver {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            background: var(--dorado);
+            color: var(--verde);
+            padding: 20px 45px;
+            border-radius: 50px;
+            font-size: 1.6em;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(255,194,41,0.7);
+            transition: all 0.4s;
+        }
+        .btn-volver:hover {
+            transform: scale(1.1) translateX(-10px);
+            box-shadow: 0 25px 60px rgba(255,194,41,0.9);
+        }
+
+        .calc-container {
+            max-width: 1000px;
+            margin: 100px auto 0;
+            background: white;
+            border-radius: 40px;
+            padding: 70px;
+            box-shadow: 0 40px 120px rgba(0,91, 0.4);
+            border: 8px solid var(--verde);
+        }
+
+        h2 { text-align: center; font-size: 3.8em; color: var(--verde); margin-bottom: 50px; }
+        form { background: var(--suave); padding: 50px; border-radius: 35px; }
+        label { display: block; margin: 30px 0 12px; font-weight: bold; font-size: 1.5em; color: var(--verde); }
+        input, select { width: 100%; padding: 18px; border: 3px solid #ccc; border-radius: 20px; font-size: 1.4em; }
+        input:focus, select:focus { border-color: var(--dorado); outline: none; box-shadow: 0 0 30px rgba(255,194,41,0.5); }
+        button.calcular, button.borrar {
+            background: var(--gradiente);
+            color: white;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.6em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px 10px;
+            transition: 0.4s;
+        }
+        button.borrar { background: #dc3545; }
+        button.calcular:hover, button.borrar:hover { transform: translateY(-12px) scale(1.1); }
+
+        .result-button {
+            display: inline-block;
+            padding: 50px 100px;
+            background: var(--gradiente);
+            color: white;
+            font-size: 3em;
+            border-radius: 60px;
+            margin: 40px 15px;
+            box-shadow: 0 30px 90px rgba(0,91,51,0.8);
+            animation: pulse 2.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+        .steps-btn { background: var(--dorado); color: var(--verde); padding: 18px 50px; border-radius: 35px; font-weight: bold; font-size: 1.3em; cursor: pointer; }
+        .steps { background: #fffbe6; padding: 50px; border-radius: 30px; border: 10px solid var(--dorado); margin: 50px 0; display: none; font-size: 1.5em; line-height: 2.2; }
+        .steps.show { display: block; animation: slideUp 0.8s; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+
+        .formula-container {
+            background: var(--claro);
+            padding: 40px;
+            border-radius: 30px;
+            margin: 40px 0;
+            text-align: center;
+            font-size: 2em;
+            border-left: 15px solid var(--dorado);
+        }
+        .error { color: #c62828; background: #ffebee; padding: 25px; border-radius: 20px; border-left: 10px solid #f44336; font-weight: bold; margin: 30px 0; font-size: 1.4em; }
+        .tabla-container { margin: 50px 0; overflow: auto; max-height: 700px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--verde); color: white; padding: 20px; font-size: 1.4em; }
+        td { padding: 15px; text-align: center; background: #f8f9fa; font-size: 1.3em; }
+        tr:nth-child(even) td { background: #eef5ee; }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ PRINCIPAL CON CATEGORÍAS PLEGABLES MEJORADO -->
+    <div id="menu-principal">
+        <header>
+            <div class="header-content">
+                <a href="https://upec.edu.ec" target="_blank">
+                    <img src="https://scontent.fuio28-1.fna.fbcdn.net/v/t39.30808-6/476230723_580687791532565_5959648431105008674_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=cc71e4&_nc_eui2=AeGAdOIeYv1KC8vmoke2l22VT2m8dtDmI3tPabx20OYje79rVSfgNMyUGYfjBSb0uqwcY3Jh7CQlUBJitv4Z4CGq&_nc_ohc=4cLAlFOPRKAQ7kNvwHXIQ0Z&_nc_oc=AdlQGUIUi8Lhv4SZTBAbMcULgavt8ps6VrYUY3yjxQh18uM14BEImHoUZ2cAS7ogyxs&_nc_zt=23&_nc_ht=scontent.fuio28-1.fna&_nc_gid=Lu-K0s4M9ZAPIIo4Bc8h3g&oh=00_Afg99_JYZNQC2wuNSDRQKozG5sH6XxfhZlvTZ-2Ufri4aA&oe=6929287D" alt="UPEC" class="escudo">
+                </a>
+                <div class="titulo-institucion">
+                    <h1>Universidad Politécnica Estatal del Carchi</h1>
+                    <div class="carrera-info">Carrera de Logística y Transporte • Matemática Aplicada</div>
+                </div>
+            </div>
+        </header>
+
+        <h1 class="main-title">Calculadoras Disponibles</h1>
+        
+        <!-- BARRA DE BÚSQUEDA -->
+        <div class="search-container">
+            <input type="text" class="search-box" id="searchInput" placeholder="Buscar calculadora...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <!-- MATEMÁTICAS BÁSICAS -->
+        <div class="categoria active" onclick="toggleCategoria(this)">
+            <div class="categoria-header">
+                <i class="fas fa-calculator"></i>
+                Matemáticas Básicas
+            </div>
+            <div class="categoria-contenido">
+                <div class="cards-grid">
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('aritmetica')">
+                        <div class="card-badge">Básico</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-sort-numeric-up"></i></div>
+                            <h3>Progresión Aritmética</h3>
+                            <p>Término n-ésimo y suma de términos</p>
+                        </div>
+                    </div>
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('geometrica')">
+                        <div class="card-badge">Básico</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-infinity"></i></div>
+                            <h3>Progresión Geométrica</h3>
+                            <p>Término y suma infinita</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINANZAS E INTERÉS -->
+        <div class="categoria active" onclick="toggleCategoria(this)">
+            <div class="categoria-header">
+                <i class="fas fa-chart-line"></i>
+                Finanzas e Interés
+            </div>
+            <div class="categoria-contenido">
+                <div class="cards-grid">
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('simple')">
+                        <div class="card-badge">Simple</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                            <h3>Interés Simple</h3>
+                            <p>Cálculo directo de interés simple</p>
+                        </div>
+                    </div>
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('compuesto')">
+                        <div class="card-badge">Avanzado</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                            <h3>Interés Compuesto</h3>
+                            <p>Monto, capital, tasa o tiempo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÉTODOS DE FINANCIAMIENTO -->
+        <div class="categoria active" onclick="toggleCategoria(this)">
+            <div class="categoria-header">
+                <i class="fas fa-hand-holding-usd"></i>
+                Métodos de Financiamiento
+            </div>
+            <div class="categoria-contenido">
+                <div class="cards-grid">
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('lagarto')">
+                        <div class="card-badge">Tasa Plana</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-university"></i></div>
+                            <h3>Método Lagarto</h3>
+                            <p>Amortización con tasa plana</p>
+                        </div>
+                    </div>
+                    <div class="calc-card" onclick="event.stopPropagation(); abrirCalc('francesa')">
+                        <div class="card-badge">Cuota Fija</div>
+                        <div class="card-content">
+                            <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <h3>Método de Saldos</h3>
+                            <p>Cuota fija mensual</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE CRÉDITOS -->
+        <div class="creditos">
+            <h3>Creado por:</h3>
+            <div class="autor-info">
+                <a href="https://www.facebook.com/share/15yTPZ73x4/" target="_blank">
+                    <img src="https://scontent.fuio28-1.fna.fbcdn.net/v/t39.30808-6/557770192_789347897052448_6125112482280128558_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeFubEyhl284IefbO-6rpHSsLsD8R75hATcuwPxHvmEBN8a1irnKS24PC5fLjGBSFw6PT3XFW4PC4o9NlJ-19KUc&_nc_ohc=cI97IAtibT4Q7kNvwHEuRUf&_nc_oc=Adm0iHMbdRZJhRhY8CQX9L3eW_mfPJxksQh4qQy7tHJKDSwNO31IEohkwemL0CnyTsA&_nc_zt=23&_nc_ht=scontent.fuio28-1.fna&_nc_gid=SkysXdPEUVeDACPSW9Ej5A&oh=00_Afj8TCzafigS_FRd8t0PcDF89VzD8Vf3JxT8ou2q8ITjDQ&oe=6929474E" alt="Brayan Obando" class="foto-autor">
+                </a>
+                <div class="nombre-autor">Brayan Obando C.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CALCULADORA -->
+    <div id="calculadora-pantalla">
+        <button class="btn-volver" onclick="volverMenu()">Volver al Menú</button>
+        <div class="calc-container" id="contenido-calc"></div>
+    </div>
+
+    <script>
+        function toggleCategoria(element) {
+            element.classList.toggle('active');
+        }
+
+        function abrirCalc(id) {
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('calculadora-pantalla').classList.add('active');
+            document.getElementById('contenido-calc').innerHTML = '';
+            cargarCalculadora(id);
+            window.scrollTo(0, 0);
+        }
+
+        function volverMenu() {
+            document.getElementById('calculadora-pantalla').classList.remove('active');
+            document.getElementById('menu-principal').classList.remove('hidden');
+            document.getElementById('contenido-calc').innerHTML = '';
+        }
+
+        // FUNCIONALIDAD DE BÚSQUEDA
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.calc-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // === TODAS LAS CALCULADORAS Y FUNCIONES ===
+        function cargarCalculadora(id) {
+            const cont = document.getElementById('contenido-calc');
+
+            if(id === 'aritmetica'){
+                cont.innerHTML = `<h2>Progresión Aritmética</h2>
+                <form id="form-arit">
+                    <label>Primer término (a₁): <input type="number" id="a1" required></label>
+                    <label>Diferencia común (d): <input type="number" id="d" required></label>
+                    <label>Número de términos (n): <input type="number" id="n" required></label>
+                    <button type="button" class="calcular" onclick="calcAritmetica()">Calcular</button>
+                    <button type="button" class="borrar" onclick="document.getElementById('form-arit').reset(); document.getElementById('res-arit').innerHTML=''">Borrar</button>
+                </form>
+                <div class="formula-container">\\(a_n = a_1 + (n-1)d\\)</div>
+                <div class="formula-container">\\(S_n = \\frac{n}{2} [2a_1 + (n-1)d]\\)</div>
+                <div id="res-arit"></div>`;
+            }
+            if(id === 'geometrica'){
+                cont.innerHTML = `<h2>Progresión Geométrica</h2>
+                <form id="form-geo">
+                    <label>Primer término (a₁): <input type="number" id="a1g" required></label>
+                    <label>Razón común (r): <input type="number" id="rg" required></label>
+                    <label>Número de términos (n): <input type="number" id="ng" required></label>
+                    <button type="button" class="calcular" onclick="calcGeometrica()">Calcular</button>
+                    <button type="button" class="borrar" onclick="document.getElementById('form-geo').reset(); document.getElementById('res-geo').innerHTML=''">Borrar</button>
+                </form>
+                <div class="formula-container">\\(a_n = a_1 \\cdot r^{n-1}\\)</div>
+                <div class="formula-container">\\(S_n = a_1 \\frac{1-r^n}{1-r}\\)</div>
+                <div id="res-geo"></div>`;
+            }
+            if(id === 'simple'){
+                cont.innerHTML = `<h2>Interés Simple</h2>
+                <form id="form-simple">
+                    <label>Capital (C): <input type="number" id="cs" required></label>
+                    <label>Tasa anual (i %): <input type="number" step="0.01" id="is" required></label>
+                    <label>Tiempo (t años): <input type="number" step="0.01" id="ts" required></label>
+                    <button type="button" class="calcular" onclick="calcSimple()">Calcular</button>
+                </form>
+                <div class="formula-container">\\(M = C(1 + i \\cdot t)\\)</div>
+                <div id="res-simple"></div>`;
+            }
+            if(id === 'compuesto'){
+                cont.innerHTML = `<h2>Interés Compuesto</h2>
+                <form id="form-comp">
+                    <label>¿Qué deseas calcular?
+                        <select id="tipo" onchange="updateComp()">
+                            <option value="monto">Monto Final (M)</option>
+                            <option value="capital">Capital Inicial (C)</option>
+                            <option value="tasa">Tasa Nominal (j %)</option>
+                            <option value="tiempo">Tiempo (t años)</option>
+                        </select>
+                    </label>
+                    <div id="lC"><label>Capital (C): <input type="number" step="0.01" id="C"></label></div>
+                    <div id="lM"><label>Monto Final (M): <input type="number" step="0.01" id="M"></label></div>
+                    <div id="lj"><label>Tasa Nominal Anual (j %): <input type="number" step="0.0001" id="j"></label></div>
+                    <div id="lt"><label>Tiempo (t años): <input type="number" step="0.01" id="t"></label></div>
+                    <label>Capitalización:
+                        <select id="m">
+                            <option value="1">Anual</option><option value="2">Semestral</option><option value="4">Trimestral</option><option value="12">Mensual</option><option value="365">Diaria</option>
+                        </select>
+                    </label>
+                    <button type="button" class="calcular" onclick="calcCompuesto()">Calcular</button>
+                    <button type="button" class="borrar" onclick="resetComp()">Borrar</button>
+                </form>
+                <div class="formula-container" id="formComp"></div>
+                <div id="res-comp"></div>`;
+                updateComp();
+            }
+            if(id === 'lagarto'){
+                cont.innerHTML = `<h2>Método Lagarto (Tasa Plana)</h2>
+                <form id="form-lag">
+                    <label>Capital prestado ($): <input type="number" id="cl" required></label>
+                    <label>Tasa anual (%): <input type="number" step="0.01" id="il" required></label>
+                    <label>Tiempo (años): <input type="number" id="tl" required></label>
+                    <button type="button" class="calcular" onclick="calcLagarto()">Calcular Tabla</button>
+                </form>
+                <div id="res-lag"></div>`;
+            }
+            if(id === 'francesa'){
+                cont.innerHTML = `<h2>Método de Saldos (Cuota Fija)</h2>
+                <form id="form-fran">
+                    <label>Capital prestado ($): <input type="number" id="cf" required></label>
+                    <label>Tasa anual (%): <input type="number" step="0.01" id="if" required></label>
+                    <label>Tiempo (años): <input type="number" id="tf" required></label>
+                    <button type="button" class="calcular" onclick="calcFrancesa()">Calcular Tabla</button>
+                </form>
+                <div id="res-fran"></div>`;
+            }
+            MathJax.typesetPromise();
+        }
+
+        // === FUNCIONES DE CÁLCULO ===
+        function calcAritmetica(){
+            const a1 = parseFloat(document.getElementById('a1').value);
+            const d  = parseFloat(document.getElementById('d').value);
+            const n  = parseFloat(document.getElementById('n').value);
+            if(isNaN(a1)||isNaN(d)||isNaN(n)||n<=0){ error('res-arit'); return; }
+            const an = a1 + (n-1)*d;
+            const sn = n/2 * (2*a1 + (n-1)*d);
+            document.getElementById('res-arit').innerHTML = `
+                <div class="result-button">a_${n} = ${an.toFixed(4)}</div>
+                <div class="result-button">S_${n} = ${sn.toFixed(4)}</div>
+                <button class="steps-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    Ver pasos detallados
+                </button>
+                <div class="steps">
+                    \\(a_n = ${a1} + (${n}-1)\\cdot${d} = ${an.toFixed(4)}\\)<br><br>
+                    \\(S_n = \\frac{${n}}{2} [2\\cdot${a1} + (${n}-1)\\cdot${d}] = ${sn.toFixed(4)}\\)
+                </div>`;
+            MathJax.typesetPromise();
+        }
+
+        function calcGeometrica(){
+            const a1 = parseFloat(document.getElementById('a1g').value);
+            const r  = parseFloat(document.getElementById('rg').value);
+            const n  = parseFloat(document.getElementById('ng').value);
+            if(isNaN(a1)||isNaN(r)||isNaN(n)||n<=0){ error('res-geo'); return; }
+            const an = a1 * Math.pow(r, n-1);
+            const sn = (r === 1) ? a1 * n : a1 * (1 - Math.pow(r, n)) / (1 - r);
+            document.getElementById('res-geo').innerHTML = `
+                <div class="result-button">a_${n} = ${an.toFixed(4)}</div>
+                <div class="result-button">S_${n} = ${sn.toFixed(4)}</div>
+                <button class="steps-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    Ver pasos detallados
+                </button>
+                <div class="steps">
+                    \\(a_n = ${a1} \\cdot ${r}^{${n}-1} = ${an.toFixed(4)}\\)<br><br>
+                    \\(S_n = ${a1} \\cdot \\frac{1-${r}^{${n}}}{1-${r}} = ${sn.toFixed(4)}\\)
+                </div>`;
+            MathJax.typesetPromise();
+        }
+
+        function calcSimple(){
+            const C = parseFloat(document.getElementById('cs').value);
+            const i = parseFloat(document.getElementById('is').value)/100;
+            const t = parseFloat(document.getElementById('ts').value);
+            if(isNaN(C)||isNaN(i)||isNaN(t)){ error('res-simple'); return; }
+            const M = C * (1 + i * t);
+            const I = M - C;
+            document.getElementById('res-simple').innerHTML = `
+                <div class="result-button">M = $${M.toFixed(2)}</div>
+                <div class="result-button">I = $${I.toFixed(2)}</div>
+                <button class="steps-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    Ver pasos detallados
+                </button>
+                <div class="steps">
+                    \\(M = ${C} \\cdot (1 + ${i} \\cdot ${t}) = ${M.toFixed(2)}\\)<br><br>
+                    \\(I = ${M.toFixed(2)} - ${C} = ${I.toFixed(2)}\\)
+                </div>`;
+            MathJax.typesetPromise();
+        }
+
+        function updateComp(){
+            const tipo = document.getElementById('tipo').value;
+            document.getElementById('lC').style.display = tipo!='capital'?'block':'none';
+            document.getElementById('lM').style.display = tipo!='monto'?'block':'none';
+            document.getElementById('lj').style.display = tipo!='tasa'?'block':'none';
+            document.getElementById('lt').style.display = tipo!='tiempo'?'block':'none';
+            
+            let formula = '';
+            if(tipo=='monto') formula = '\\(M = C(1 + \\frac{j}{m})^{m \\cdot t}\\)';
+            if(tipo=='capital') formula = '\\(C = \\frac{M}{(1 + \\frac{j}{m})^{m \\cdot t}}\\)';
+            if(tipo=='tasa') formula = '\\(j = m \\cdot [(\\frac{M}{C})^{\\frac{1}{m \\cdot t}} - 1]\\)';
+            if(tipo=='tiempo') formula = '\\(t = \\frac{\\ln(\\frac{M}{C})}{m \\cdot \\ln(1 + \\frac{j}{m})}\\)';
+            document.getElementById('formComp').innerHTML = formula;
+            MathJax.typesetPromise();
+        }
+
+        function resetComp(){
+            document.getElementById('form-comp').reset();
+            document.getElementById('res-comp').innerHTML = '';
+            updateComp();
+        }
+
+        function calcCompuesto(){
+            const tipo = document.getElementById('tipo').value;
+            const C = parseFloat(document.getElementById('C').value);
+            const M = parseFloat(document.getElementById('M').value);
+            const j = parseFloat(document.getElementById('j').value)/100;
+            const t = parseFloat(document.getElementById('t').value);
+            const m = parseFloat(document.getElementById('m').value);
+            
+            let res = '', formula = '';
+            if(tipo=='monto'){
+                if(isNaN(C)||isNaN(j)||isNaN(t)||isNaN(m)){ error('res-comp'); return; }
+                const Mt = C * Math.pow(1 + j/m, m*t);
+                res = `Monto Final: $${Mt.toFixed(2)}`;
+                formula = `\\(M = ${C} \\cdot (1 + \\frac{${j}}{${m}})^{${m} \\cdot ${t}} = ${Mt.toFixed(2)}\\)`;
+            }
+            if(tipo=='capital'){
+                if(isNaN(M)||isNaN(j)||isNaN(t)||isNaN(m)){ error('res-comp'); return; }
+                const Ct = M / Math.pow(1 + j/m, m*t);
+                res = `Capital Inicial: $${Ct.toFixed(2)}`;
+                formula = `\\(C = \\frac{${M}}{(1 + \\frac{${j}}{${m}})^{${m} \\cdot ${t}}} = ${Ct.toFixed(2)}\\)`;
+            }
+            if(tipo=='tasa'){
+                if(isNaN(C)||isNaN(M)||isNaN(t)||isNaN(m)){ error('res-comp'); return; }
+                const jt = m * (Math.pow(M/C, 1/(m*t)) - 1) * 100;
+                res = `Tasa Nominal Anual: ${jt.toFixed(4)}%`;
+                formula = `\\(j = ${m} \\cdot [(\\frac{${M}}{${C}})^{\\frac{1}{${m} \\cdot ${t}}} - 1] = ${jt.toFixed(4)}\\%\\)`;
+            }
+            if(tipo=='tiempo'){
+                if(isNaN(C)||isNaN(M)||isNaN(j)||isNaN(m)){ error('res-comp'); return; }
+                const tt = Math.log(M/C) / (m * Math.log(1 + j/m));
+                res = `Tiempo: ${tt.toFixed(2)} años`;
+                formula = `\\(t = \\frac{\\ln(\\frac{${M}}{${C}})}{${m} \\cdot \\ln(1 + \\frac{${j}}{${m}})} = ${tt.toFixed(2)} años\\)`;
+            }
+            
+            document.getElementById('res-comp').innerHTML = `
+                <div class="result-button">${res}</div>
+                <button class="steps-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    Ver pasos detallados
+                </button>
+                <div class="steps">${formula}</div>`;
+            MathJax.typesetPromise();
+        }
+
+        function calcLagarto(){
+            const C = parseFloat(document.getElementById('cl').value);
+            const i = parseFloat(document.getElementById('il').value)/100;
+            const t = parseFloat(document.getElementById('tl').value);
+            if(isNaN(C)||isNaN(i)||isNaN(t)){ error('res-lag'); return; }
+            
+            const n = t * 12;
+            const I = C * i * t;
+            const cuota = (C + I) / n;
+            let tabla = `<div class="tabla-container"><table><tr><th>Mes</th><th>Saldo Inicial</th><th>Interés</th><th>Amortización</th><th>Cuota</th><th>Saldo Final</th></tr>`;
+            let saldo = C;
+            for(let mes=1; mes<=n; mes++){
+                const interes = I / n;
+                const amortizacion = cuota - interes;
+                const saldoFinal = saldo - amortizacion;
+                tabla += `<tr><td>${mes}</td><td>${saldo.toFixed(2)}</td><td>${interes.toFixed(2)}</td><td>${amortizacion.toFixed(2)}</td><td>${cuota.toFixed(2)}</td><td>${saldoFinal.toFixed(2)}</td></tr>`;
+                saldo = saldoFinal;
+            }
+            tabla += `</table></div>`;
+            document.getElementById('res-lag').innerHTML = `
+                <div class="result-button">Cuota Mensual: $${cuota.toFixed(2)}</div>
+                <div class="result-button">Interés Total: $${I.toFixed(2)}</div>
+                ${tabla}`;
+        }
+
+        function calcFrancesa(){
+            const C = parseFloat(document.getElementById('cf').value);
+            const i = parseFloat(document.getElementById('if').value)/100;
+            const t = parseFloat(document.getElementById('tf').value);
+            if(isNaN(C)||isNaN(i)||isNaN(t)){ error('res-fran'); return; }
+            
+            const n = t * 12;
+            const im = i / 12;
+            const cuota = C * im / (1 - Math.pow(1+im, -n));
+            let tabla = `<div class="tabla-container"><table><tr><th>Mes</th><th>Saldo Inicial</th><th>Interés</th><th>Amortización</th><th>Cuota</th><th>Saldo Final</th></tr>`;
+            let saldo = C;
+            let totalInteres = 0;
+            for(let mes=1; mes<=n; mes++){
+                const interes = saldo * im;
+                const amortizacion = cuota - interes;
+                const saldoFinal = saldo - amortizacion;
+                tabla += `<tr><td>${mes}</td><td>${saldo.toFixed(2)}</td><td>${interes.toFixed(2)}</td><td>${amortizacion.toFixed(2)}</td><td>${cuota.toFixed(2)}</td><td>${saldoFinal.toFixed(2)}</td></tr>`;
+                saldo = saldoFinal;
+                totalInteres += interes;
+            }
+            tabla += `</table></div>`;
+            document.getElementById('res-fran').innerHTML = `
+                <div class="result-button">Cuota Mensual: $${cuota.toFixed(2)}</div>
+                <div class="result-button">Interés Total: $${totalInteres.toFixed(2)}</div>
+                ${tabla}`;
+        }
+
+        function error(id, msg="Complete todos los campos"){
+            document.getElementById(id).innerHTML = `<div class="error">${msg}</div>`;
+        }
+
+        MathJax.typesetPromise();
+    </script>
+</body>
+</html>
